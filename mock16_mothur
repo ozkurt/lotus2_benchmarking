@@ -16,19 +16,16 @@ count.seqs(name=$OUTP/stability.trim.contigs.good.chop.names, group=$OUTP/stabil
 summary.seqs(count=$OUTP/stability.trim.contigs.good.chop.count_table)
 
 
+#Start and end positions are decided based on the summary file:
+pcr.seqs(fasta=silva.138.1.bacteria.gold.align, start=15630, end=25316, keepdots=F, processors=12)
+rename.file(input=silva.138.1.bacteria.gold.pcr.align, new=silva.mock.fasta)
+summary.seqs(fasta=silva.mock.fasta)
 #Alignment:
-align.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.fasta, reference=silva.138.1.bacteria.gold.align, flip=T, processors=12)
+align.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.fasta, reference=silva.mock.fasta)
 summary.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.align, count=$OUTP/stability.trim.contigs.good.chop.count_table)
 
-
-# Start and end positions are decided based on the summary file:
-pcr.seqs(fasta=silva.bacteria.fasta, start=15667, end=25316, keepdots=F, processors=12)
-rename.file(input=silva.bacteria.pcr.fasta, new=silva.mock.fasta)
-summary.seqs(fasta=silva.mock.fasta)
-align.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.fasta, reference=silva.mock.fasta)
-
-
-screen.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.align, count=$OUTP//stability.trim.contigs.good.chop.count_table, summary=$OUTP/stability.trim.contigs.good.chop.unique.summary, start=15667, end=25316, maxhomop=8)
+#Start and end positions are decided based on the summary file:
+screen.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.align, count=$OUTP//stability.trim.contigs.good.chop.count_table, summary=$OUTP/stability.trim.contigs.good.chop.unique.summary, start=37, end=9686, maxhomop=8)
 summary.seqs(fasta=current, count=current)
 
 #Filtering:
@@ -38,9 +35,10 @@ pre.cluster(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.uniq
 
 #Chimera detection:
 chimera.vsearch(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.fasta, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.count_table, dereplicate=t)
-
-
 remove.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.fasta, accnos=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.accnos)
+summary.seqs(fasta=current, count=current)
+
+#Classifying the sequences:
 classify.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.pick.fasta, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.pick.count_table, reference=silva.nr_v138_1.align, taxonomy=silva.nr_v138_1.tax, cutoff=80)
 
 #Removing the "unknown" taxa:
