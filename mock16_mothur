@@ -1,0 +1,52 @@
+#Setting the working directories:
+set.dir(output=$OUTP)
+#set.dir(input=$INP)
+
+#Demultiplexing
+make.file(inputdir=$INP, type=gz, prefix=stability)
+make.contigs(file=$OUTP/stability.files, processors=12)
+summary.seqs(fasta=$OUTP/stability.trim.contigs.fasta)
+screen.seqs(fasta=$OUTP/stability.trim.contigs.fasta, group=$OUTP/stability.contigs.groups, maxambig=0, maxlength=301)
+summary.seqs(fasta=$OUTP/stability.trim.contigs.good.fasta)
+
+#Truncating the reads:
+chop.seqs(fasta=$OUTP/stability.trim.contigs.good.fasta, numbases=220, processors=12,keep=F)
+unique.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.fasta)
+count.seqs(name=$OUTP/stability.trim.contigs.good.chop.names, group=$OUTP/stability.contigs.good.groups)
+summary.seqs(count=$OUTP/stability.trim.contigs.good.chop.count_table)
+
+
+#Alignment:
+align.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.fasta, reference=silva.138.1.bacteria.gold.align, flip=T, processors=12)
+summary.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.align, count=$OUTP/stability.trim.contigs.good.chop.count_table)
+
+
+# Start and end positions are decided based on the summary file:
+pcr.seqs(fasta=silva.bacteria.fasta, start=15667, end=25316, keepdots=F, processors=12)
+rename.file(input=silva.bacteria.pcr.fasta, new=silva.mock.fasta)
+summary.seqs(fasta=silva.mock.fasta)
+align.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.fasta, reference=silva.mock.fasta)
+
+
+screen.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.align, count=$OUTP//stability.trim.contigs.good.chop.count_table, summary=$OUTP/stability.trim.contigs.good.chop.unique.summary, start=15667, end=25316, maxhomop=8)
+summary.seqs(fasta=current, count=current)
+
+#Filtering:
+filter.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.align, vertical=T, trump=.)
+unique.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.fasta, count=$OUTP/stability.trim.contigs.good.chop.good.count_table)
+pre.cluster(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.fasta, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.count_table, diffs=2)
+
+#Chimera detection:
+chimera.vsearch(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.fasta, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.count_table, dereplicate=t)
+
+
+remove.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.fasta, accnos=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.accnos)
+classify.seqs(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.pick.fasta, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.pick.count_table, reference=silva.nr_v138_1.align, taxonomy=silva.nr_v138_1.tax, cutoff=80)
+
+#Removing the "unknown" taxa:
+remove.lineage(fasta=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.pick.fasta, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.pick.count_table, taxonomy=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.pick.nr_v138_1.wang.taxonomy, taxon=unknown)
+
+
+#ASV clustering:
+make.shared(count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.pick.pick.count_table)
+classify.otu(list=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.pick.pick.asv.list, count=$OUTP/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.denovo.vsearch.pick.pick.count_table, taxonomy=/hpc-home/okurt/deneme/mock16/fastq/mothur_output/stability.trim.contigs.good.chop.unique.good.filter.unique.precluster.pick.nr_v138_1.wang.taxonomy, label=asv)
