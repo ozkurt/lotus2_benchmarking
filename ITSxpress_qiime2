@@ -1,0 +1,87 @@
+INP=/dir for the fastq files from the 1st run/
+INPb=/dir for the fastq files from the 2nd run/
+
+
+##### FIRST REPLICATES #####
+#Importing fastq files as a Qiime artifact
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path $INP --input-format CasavaOneEightSingleLanePerSampleDirFmt --output-path demux-soil_ITS_a.qza
+
+qiime cutadapt trim-paired \
+--i-demultiplexed-sequences demux-soil_ITS_a.qza \
+--p-front-f GGGTGARTCATCRARTYTTTG \
+--p-front-r CCTSCSCTTANTDATATGC \
+--p-cores 12 \
+--o-trimmed-sequences trimmed-seqs_ITS_a.qza \
+--verbose
+
+#Trimming the reads with the q2-itsxpress plugin
+qiime itsxpress trim-pair-output-unmerged --i-per-sample-sequences trimmed-seqs_ITS_a.qza --p-region ITS2 --p-taxa F --p-threads 24 --verbose --o-trimmed trimmed_demux_ITS_a.qza
+
+#Denoising the data with Dada2:
+qiime dada2 denoise-paired --i-demultiplexed-seqs trimmed_demux_ITS_a.qza --p-trim-left-f 0 --p-trim-left-r 0 --p-trunc-len-r 0 --p-trunc-len-f 0 --p-n-threads 0 --verbose --o-representative-sequences rep-seqs_d2_its_a.qza --o-table table_d2_its_a.qza --o-denoising-stats denoised-stats_d2_its_a.qza
+
+
+##### SECOND REPLICATES ############
+#Importing fastq files as a Qiime artifact
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path $INPb --input-format CasavaOneEightSingleLanePerSampleDirFmt --output-path demux-soil_ITS_b.qza
+
+qiime cutadapt trim-paired \
+--i-demultiplexed-sequences demux-soil_ITS_b.qza \
+--p-front-f GGGTGARTCATCRARTYTTTG \
+--p-front-r CCTSCSCTTANTDATATGC \
+--p-cores 12 \
+--o-trimmed-sequences trimmed-seqs_ITS_b.qza \
+--verbose
+
+#Trimming the reads with the q2-itsxpress plugin
+qiime itsxpress trim-pair-output-unmerged --i-per-sample-sequences trimmed-seqs_ITS_b.qza --p-region ITS2 --p-taxa F --p-threads 24 --verbose --o-trimmed trimmed_demux_ITS_b.qza
+
+
+#Denoising the data with Dada2:
+qiime dada2 denoise-paired --i-demultiplexed-seqs trimmed_demux_ITS_b.qza --p-trim-left-f 0 --p-trim-left-r 0 --p-trunc-len-r 0 --p-trunc-len-f 0 --p-n-threads 0 --verbose --o-representative-sequences rep-seqs_d2_its_b.qza --o-table table_d2_its_b.qza --o-denoising-stats denoised-stats_d2_its_b.qza
+
+
+
+#### Mergeing two runs #####
+qiime feature-table merge --i-tables table_d2_its_a.qza --i-tables table_d2_its_b.qza --o-merged-table table_merged_q2d2_its.qza
+
+qiime feature-table merge-seqs --i-data rep-seqs_d2_its_a.qza --i-data rep-seqs_d2_its_b.qza --o-merged-data rep-seqs_merged_q2d2_its.qza
+
+
+#Exporting the table for the downstream analysis
+
+qiime tools export table_merged_q2d2_its.qza --output-dir exported-feature-table
+
+#Converting the biom file into txt file
+biom convert -i exported-feature-table/feature-table.biom -o table_merged_q2d2_ITS.txt --to-tsv
+
+
+#Importing the UNITE reference into QIIME2:
+qiime tools import \
+--type FeatureData[Sequence] \
+--input-path sh_refs_qiime_ver8_99_s_all_02.02.2019_uppercase.fasta \
+--output-path unite-ver8-seqs_99_s_all_02.02.2019.qza
+
+#Importing the taxonomy:
+qiime tools import \
+--type FeatureData[Taxonomy] \
+--input-path sh_taxonomy_qiime_ver8_99_s_all_02.02.2019.txt \
+--output-path unite-ver8-taxonomy_99_s_all_02.02.2019.qza \
+--input-format HeaderlessTSVTaxonomyFormat
+
+
+
+#Training the UNITE db on full length:
+qiime feature-classifier fit-classifier-naive-bayes \
+--i-reference-reads unite-ver8-seqs_99_s_all_02.02.2019.qza \
+--i-reference-taxonomy unite-ver8-taxonomy_99_s_all_02.02.2019.qza \
+--o-classifier unite-ver8-99-s-all-classifier-02.02.2019.qza
+
+
+#Producing the Qiime2 taxonomy artifact
+qiime feature-classifier classify-sklearn --i-classifier unite-ver8-99-s-all-classifier-02.02.2019.qza --i-reads rep-seqs_merged_q2d2_its.qza --o-classification taxonomy99_q2d2_its.qza
+
+
+qiime metadata tabulate \
+  --m-input-file taxonomy99_q2d2_its.qza \
+  --o-visualization taxonomy99_q2d2_its.qzv
