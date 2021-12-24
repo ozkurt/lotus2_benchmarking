@@ -10,11 +10,11 @@ summary.seqs(fasta=$OUTP/stability.trim.contigs.fasta)
 #Removing the primers:
 trim.seqs(fasta=stability.trim.contigs.fasta, oligos=$OUTP/pcrTest_mock.oligos, pdiffs=1, checkorient=t)
 summary.seqs($OUTP/stability.trim.contigs.trim.fasta)
-screen.seqs(fasta=$OUTP/stability.trim.contigs.trim.fasta, group=$OUTP/stability.contigs.groups, maxambig=0, maxlength=292)
+screen.seqs(fasta=$OUTP/stability.trim.contigs.trim.fasta, group=$OUTP/stability.contigs.groups, maxambig=0)
 summary.seqs(fasta=$OUTP/stability.trim.contigs.trim.good.fasta)
 
 #Truncating the reads:
-chop.seqs(fasta=$OUTP/stability.trim.contigs.trim.good.fasta, numbases=220, processors=12,keep=F)
+chop.seqs(fasta=$OUTP/stability.trim.contigs.trim.good.fasta, numbases=200, processors=12,keep=F)
 unique.seqs(fasta=$OUTP/stability.trim.contigs.trim.good.chop.fasta)
 count.seqs(name=$OUTP/stability.trim.contigs.trim.good.chop.names, group=$OUTP/stability.contigs.good.groups)
 summary.seqs(count=$OUTP/stability.trim.contigs.trim.good.chop.count_table)
