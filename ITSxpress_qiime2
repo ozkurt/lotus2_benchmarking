@@ -15,7 +15,7 @@ qiime cutadapt trim-paired \
 --verbose
 
 #Trimming the reads with the q2-itsxpress plugin
-qiime itsxpress trim-pair-output-unmerged --i-per-sample-sequences trimmed-seqs_ITS_a.qza --p-region ITS2 --p-taxa F --p-threads 24 --verbose --o-trimmed trimmed_demux_ITS_a.qza
+qiime itsxpress trim-pair-output-unmerged --i-per-sample-sequences trimmed-seqs_ITS_a.qza --p-region ITS2 --p-taxa F --p-threads 12 --verbose --o-trimmed trimmed_demux_ITS_a.qza
 
 #Denoising the data with Dada2:
 qiime dada2 denoise-paired --i-demultiplexed-seqs trimmed_demux_ITS_a.qza --p-trim-left-f 0 --p-trim-left-r 0 --p-trunc-len-r 0 --p-trunc-len-f 0 --p-n-threads 0 --verbose --o-representative-sequences rep-seqs_d2_its_a.qza --o-table table_d2_its_a.qza --o-denoising-stats denoised-stats_d2_its_a.qza
@@ -34,7 +34,7 @@ qiime cutadapt trim-paired \
 --verbose
 
 #Trimming the reads with the q2-itsxpress plugin
-qiime itsxpress trim-pair-output-unmerged --i-per-sample-sequences trimmed-seqs_ITS_b.qza --p-region ITS2 --p-taxa F --p-threads 24 --verbose --o-trimmed trimmed_demux_ITS_b.qza
+qiime itsxpress trim-pair-output-unmerged --i-per-sample-sequences trimmed-seqs_ITS_b.qza --p-region ITS2 --p-taxa F --p-threads 12 --verbose --o-trimmed trimmed_demux_ITS_b.qza
 
 
 #Denoising the data with Dada2:
