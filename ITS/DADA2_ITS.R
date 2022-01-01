@@ -1,6 +1,6 @@
 library(dada2)
 ncores=12
-
+seqtab.nochim=list()
 
 # Define a path for the dir to the 1st set of samples (path1)
 # Define a path for the dir to the 2nd set of samples (path2)
