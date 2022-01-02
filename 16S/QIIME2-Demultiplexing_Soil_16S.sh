@@ -16,5 +16,6 @@ qiime cutadapt trim-paired \
 --o-trimmed-sequences $INP/trimmed-seqs.qza \
 --verbose
 
+##### Only for Deblur: #######
 echo "Joining the paired-end reads:"
 qiime vsearch join-pairs --i-demultiplexed-seqs $INP/trimmed-seqs.qza --o-joined-sequences demux-soil-joined.qza
