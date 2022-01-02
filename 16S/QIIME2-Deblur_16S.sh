@@ -184,7 +184,7 @@ qiime tools export --input-path $OUTP/table_deblur_merged.qza --output-path $OUT
 biom convert -i $OUTP/exported-feature-tables/feature-table.biom -o $OUTP/table_merged_deblur.txt --to-tsv
 
 ######### TAXONOMY ###################
-echo "Using already trained db"
+echo "Using an already trained db"
 
 echo "Classifying:"
 
